@@ -25,4 +25,45 @@ router.patch('/bookings/:id/token', protectVendor, bookingController.updateToken
 // Add route to notify customer about queue position
 router.post('/bookings/:bookingId/notify-queue', protectVendor, bookingController.notifyCustomerAboutQueue);
 
+// Add this route to your existing vendor routes
+router.get('/:id', async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.params.id)
+      .select('-password -tokensByDate -lastTokenNumber -lastTokenResetDate');
+    
+    if (!vendor) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+    
+    res.json(vendor);
+  } catch (err) {
+    console.error('Error fetching vendor:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Also add a route to get vendor services
+router.get('/:id/services', async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.params.id).select('services');
+    
+    if (!vendor) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+    
+    // Transform services to include IDs for frontend selection
+    const services = vendor.services.map(service => ({
+      id: service._id,
+      name: service.name,
+      duration: service.duration,
+      price: service.price
+    }));
+    
+    res.json(services);
+  } catch (err) {
+    console.error('Error fetching vendor services:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

@@ -7,7 +7,18 @@ const jwt = require('jsonwebtoken');
 // 🔐 Register Vendor
 const registerVendor = async (req, res) => {
   try {
-    const { name, email, password, category, location } = req.body;
+    const { 
+      name, 
+      email, 
+      password, 
+      category, 
+      location, 
+      services,
+      description,
+      phoneNumber,
+      openingTime,
+      closingTime 
+    } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email and password are required' });
@@ -24,6 +35,13 @@ const registerVendor = async (req, res) => {
       password: hashedPassword,
       category,
       location,
+      services: services || [],
+      description: description || '',
+      phoneNumber: phoneNumber || '',
+      workingHours: {
+        start: openingTime || '09:00',
+        end: closingTime || '18:00'
+      },
       isOpen: true // Set default status to open
     });
 
@@ -90,17 +108,41 @@ const getVendorBookings = async (req, res) => {
       return res.status(404).json({ message: 'Vendor not found' });
     }
     
-    // Get the bookings - now include status filter if provided
-    const statusFilter = req.query.status ? { status: req.query.status } : {};
-    const bookings = await Booking.find({ 
-      vendor: vendorId,
-      ...statusFilter
-    }).sort({ date: 1, time: 1 });
+    // Add query parameters support for pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
     
-    // Return both vendor and bookings data to match frontend expectations
+    // Get the bookings - include status filter if provided
+    const statusFilter = req.query.status ? { status: req.query.status } : {};
+    const dateFilter = req.query.date ? { date: req.query.date } : {};
+    
+    // Create query with filters
+    const query = { 
+      vendor: vendorId,
+      ...statusFilter,
+      ...dateFilter
+    };
+    
+    // Execute query with pagination
+    const bookings = await Booking.find(query)
+      .sort({ date: 1, time: 1 })
+      .skip(skip)
+      .limit(limit);
+    
+    // Get total count for pagination
+    const totalCount = await Booking.countDocuments(query);
+    
+    // Return both vendor and bookings data with pagination info
     res.json({
       vendor,
-      bookings
+      bookings,
+      pagination: {
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        currentPage: page,
+        hasMore: page * limit < totalCount
+      }
     });
   } catch (error) {
     console.error('Error fetching vendor bookings:', error);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import Navbar from '../components/Navbar';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
@@ -29,6 +30,7 @@ const BookWithVendor = () => {
     const fetchVendorData = async () => {
       try {
         setLoading(true);
+        // Update the API URL to match your backend route structure
         const vendorResponse = await axios.get(`/api/vendors/${vendorId}`);
         setVendor(vendorResponse.data);
         
@@ -36,7 +38,7 @@ const BookWithVendor = () => {
         setServices(servicesResponse.data);
       } catch (error) {
         console.error('Error fetching vendor data:', error);
-        setError('Failed to load vendor information');
+        setError('Failed to load vendor information. This vendor might not exist or has been removed.');
         toast.error('Failed to load vendor information');
       } finally {
         setLoading(false);
@@ -154,6 +156,7 @@ const BookWithVendor = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
+      <Navbar />
       {/* Vendor Information */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex items-center gap-6">

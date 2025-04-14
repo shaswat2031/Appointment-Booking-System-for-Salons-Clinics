@@ -14,26 +14,30 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md">
-      <div className="container mx-auto px-4 py-3">
+    <nav className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
+      <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
-          <div className="text-xl font-bold">
-            <Link to="/" className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>AppointMate</span>
-            </Link>
-          </div>
+          
+          {/* Logo */}
+          <Link to="/" className="text-2xl font-extrabold tracking-tight flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            AppointMate
+          </Link>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Toggle */}
           <div className="md:hidden">
-            <button 
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="focus:outline-none"
               aria-label="Toggle menu"
@@ -48,66 +52,77 @@ const Navbar = () => {
             </button>
           </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-3">
             <NavLink to="/" isActive={isActive('/')}>Home</NavLink>
             <NavLink to="/book" isActive={isActive('/book')}>Book</NavLink>
-            <NavLink to="/check-status" isActive={isActive('/check-status')}>Check Status</NavLink>
             <NavLink to="/cancel" isActive={isActive('/cancel')}>Cancel</NavLink>
-            
+            <NavLink to="/check-status" isActive={isActive('/check-status')}>Status</NavLink>
+
             {isAuthenticated ? (
               <>
                 <NavLink to="/vendor/dashboard" isActive={isActive('/vendor/dashboard')}>Dashboard</NavLink>
-                <button 
+                <button
                   onClick={handleLogout}
-                  className="px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
+                  className="px-4 py-2 rounded-full bg-white text-blue-700 font-semibold shadow hover:bg-gray-100 transition"
                 >
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <NavLink to="/vendor/login" isActive={isActive('/vendor/login')}>
-                  Vendor Login
-                </NavLink>
-                <NavLink 
-                  to="/vendor/register" 
-                  isActive={isActive('/vendor/register')}
-                  className="ml-2 bg-white text-blue-600 hover:bg-gray-100"
+                <NavLink to="/vendor/login" isActive={isActive('/vendor/login')}>Login</NavLink>
+                <NavLink
+                  to="#pricing"
+                  isActive={false}
+                  className="bg-white text-blue-700 shadow hover:bg-gray-100"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                 >
-                  Register
+                  Become a Vendor
                 </NavLink>
               </>
             )}
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden mt-3 pt-3 border-t border-blue-500">
-            <div className="flex flex-col space-y-2">
+          <div className="md:hidden mt-4 border-t border-blue-400 pt-4">
+            <div className="flex flex-col gap-2">
               <MobileNavLink to="/" onClick={() => setIsMenuOpen(false)}>Home</MobileNavLink>
               <MobileNavLink to="/book" onClick={() => setIsMenuOpen(false)}>Book Appointment</MobileNavLink>
-              <MobileNavLink to="/check-status" onClick={() => setIsMenuOpen(false)}>Check Status</MobileNavLink>
               <MobileNavLink to="/cancel" onClick={() => setIsMenuOpen(false)}>Cancel Booking</MobileNavLink>
-              
+              <MobileNavLink to="/check-status" onClick={() => setIsMenuOpen(false)}>Check Status</MobileNavLink>
+
               {isAuthenticated ? (
                 <>
                   <MobileNavLink to="/vendor/dashboard" onClick={() => setIsMenuOpen(false)}>Dashboard</MobileNavLink>
-                  <button 
+                  <button
                     onClick={() => {
                       handleLogout();
                       setIsMenuOpen(false);
                     }}
-                    className="text-left w-full px-4 py-2 hover:bg-blue-700 transition duration-200"
+                    className="w-full text-left px-4 py-2 rounded-full bg-white text-blue-700 shadow font-semibold hover:bg-gray-100 transition"
                   >
                     Logout
                   </button>
                 </>
               ) : (
                 <>
-                  <MobileNavLink to="/vendor/login" onClick={() => setIsMenuOpen(false)}>Vendor Login</MobileNavLink>
-                  <MobileNavLink to="/vendor/register" onClick={() => setIsMenuOpen(false)}>Register</MobileNavLink>
+                  <MobileNavLink to="/vendor/login" onClick={() => setIsMenuOpen(false)}>Login</MobileNavLink>
+                  <MobileNavLink
+                    to="#pricing"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Become a Vendor
+                  </MobileNavLink>
                 </>
               )}
             </div>
@@ -118,23 +133,26 @@ const Navbar = () => {
   );
 };
 
-// Component for desktop navigation links
-const NavLink = ({ to, children, isActive }) => (
-  <Link 
-    to={to} 
-    className={`px-4 py-2 rounded transition duration-200 ${
-      isActive ? 'bg-blue-700 font-medium' : 'hover:bg-blue-700'
-    }`}
+// Pill-style NavLink for Desktop
+const NavLink = ({ to, children, isActive, className = '', onClick }) => (
+  <Link
+    to={to}
+    className={`px-4 py-2 rounded-full transition duration-200 font-medium ${
+      isActive
+        ? 'bg-white text-blue-700 shadow'
+        : 'hover:bg-white hover:text-blue-700 hover:shadow-md'
+    } ${className}`}
+    onClick={onClick}
   >
     {children}
   </Link>
 );
 
-// Component for mobile navigation links
+// Pill-style NavLink for Mobile
 const MobileNavLink = ({ to, children, onClick }) => (
-  <Link 
-    to={to} 
-    className="px-4 py-2 block hover:bg-blue-700 transition duration-200"
+  <Link
+    to={to}
+    className="px-4 py-2 rounded-full bg-white text-blue-700 shadow font-medium text-center hover:bg-gray-100 transition"
     onClick={onClick}
   >
     {children}

@@ -1,10 +1,20 @@
+// Make sure this file has the correct API URL
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: 'http://localhost:5000/api', // Update this to match your backend URL
   headers: {
     'Content-Type': 'application/json',
-  },
+  }
+});
+
+// Add request interceptor to include auth token when available
+API.interceptors.request.use((config) => {
+  const vendorToken = localStorage.getItem('vendorToken');
+  if (vendorToken) {
+    config.headers['Authorization'] = `Bearer ${vendorToken}`;
+  }
+  return config;
 });
 
 // Add response interceptor for better error handling

@@ -14,6 +14,9 @@ const BookingCard = ({ booking, onStatusUpdate }) => {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [newDate, setNewDate] = useState(booking.date);
   const [newTime, setNewTime] = useState(booking.time);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationAction, setConfirmationAction] = useState(null);
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
   const handleStatusUpdate = async (status) => {
     setIsUpdating(true);
@@ -21,11 +24,28 @@ const BookingCard = ({ booking, onStatusUpdate }) => {
       const token = localStorage.getItem('vendorToken');
       await updateBookingStatus(token, booking._id, status);
       onStatusUpdate();
+      setNotification({ 
+        show: true, 
+        message: `Booking ${status === 'done' ? 'completed' : 'cancelled'} successfully`, 
+        type: 'success' 
+      });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
     } catch (error) {
       console.error('Status update failed:', error);
+      setNotification({ 
+        show: true, 
+        message: `Failed to update status: ${error.message}`, 
+        type: 'error' 
+      });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const confirmAction = (action) => {
+    setConfirmationAction(action);
+    setShowConfirmation(true);
   };
 
   const handleCompleteUpdate = async () => {
@@ -238,7 +258,7 @@ const BookingCard = ({ booking, onStatusUpdate }) => {
         {booking.status === 'booked' && (
           <div className="flex flex-col space-y-2">
             <Button
-              onClick={() => handleStatusUpdate('done')}
+              onClick={() => confirmAction('done')}
               variant="success"
               size="sm"
               disabled={isUpdating}
@@ -256,7 +276,7 @@ const BookingCard = ({ booking, onStatusUpdate }) => {
               Reschedule
             </Button>
             <Button
-              onClick={() => handleStatusUpdate('cancelled')}
+              onClick={() => confirmAction('cancelled')}
               variant="danger"
               size="sm"
               disabled={isUpdating}
@@ -335,6 +355,40 @@ const BookingCard = ({ booking, onStatusUpdate }) => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-xl font-semibold mb-4">Confirm Action</h3>
+            <p>Are you sure you want to {confirmationAction === 'done' ? 'mark this booking as done' : 'cancel this booking'}?</p>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                onClick={() => setShowConfirmation(false)}
+              >
+                No, Go Back
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                onClick={() => {
+                  handleStatusUpdate(confirmationAction);
+                  setShowConfirmation(false);
+                }}
+              >
+                Yes, Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {notification.show && (
+        <div className={`fixed bottom-4 right-4 px-4 py-2 rounded-md ${
+          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        } text-white shadow-lg transition-opacity duration-300`}>
+          {notification.message}
         </div>
       )}
     </Card>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import { searchAppointmentsByPhone } from '../services/publicService';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const SearchAppointments = () => {
   const [phone, setPhone] = useState('');
@@ -9,6 +10,7 @@ const SearchAppointments = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,6 +43,15 @@ const SearchAppointments = () => {
     } catch (e) {
       return dateString;
     }
+  };
+
+  const handleCancelAppointment = (appointment) => {
+    navigate('/cancel-appointment', { 
+      state: { 
+        preSelectedPhone: phone,
+        preSelectedAppointment: appointment 
+      } 
+    });
   };
 
   return (
@@ -108,6 +119,7 @@ const SearchAppointments = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token #</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -120,13 +132,23 @@ const SearchAppointments = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         appointment.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                        appointment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        appointment.status === 'done' ? 'bg-green-100 text-green-800' :
                         'bg-blue-100 text-blue-800'
                       }`}>
                         {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{appointment.vendorName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {appointment.status !== 'cancelled' && appointment.status !== 'done' && (
+                        <button
+                          onClick={() => handleCancelAppointment(appointment)}
+                          className="text-red-600 hover:text-red-900 font-medium"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

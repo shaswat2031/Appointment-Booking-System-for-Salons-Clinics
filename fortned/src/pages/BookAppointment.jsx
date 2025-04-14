@@ -7,18 +7,21 @@ import React from 'react';
 const BookAppointment = () => {
   const [formData, setFormData] = useState({ 
     phone: '', 
+    customerName: '', 
     vendorId: '', 
-    serviceName: 'Haircut', // Default service
+    serviceName: 'Haircut', 
     time: '',
-    date: new Date().toISOString().split('T')[0] // Today's date
+    date: new Date().toISOString().split('T')[0],
+    customerEmail: '' // Add email field
   });
   const [message, setMessage] = useState('');
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
 
-  // Common service categories based on salon/clinic context
   const serviceCategories = {
     'salon': ['Haircut', 'Hair Coloring', 'Styling', 'Shaving', 'Facial', 'Manicure', 'Pedicure'],
     'clinic': ['Consultation', 'Check-up', 'Therapy Session', 'Vaccination', 'Treatment']
@@ -41,35 +44,130 @@ const BookAppointment = () => {
     fetchVendors();
   }, []);
 
+  const validateField = (name, value) => {
+    let error = '';
+    
+    switch(name) {
+      case 'phone':
+        if (value && (value.length !== 10 || !/^\d+$/.test(value))) {
+          error = 'Phone number must be 10 digits';
+        }
+        break;
+      case 'customerName':
+        if (value && value.length < 3) {
+          error = 'Name must be at least 3 characters';
+        }
+        break;
+      case 'customerEmail':
+        if (value && !/^\S+@\S+\.\S+$/.test(value)) {
+          error = 'Please enter a valid email address';
+        }
+        break;
+      case 'time': {
+        const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        if (value && !timePattern.test(value)) {
+          error = 'Please use HH:MM format';
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    
+    return error;
+  };
+
   const handleChange = e => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Mark field as touched
+    setTouchedFields(prev => ({
+      ...prev,
+      [name]: true
+    }));
+    
+    const error = validateField(name, value);
+    setFormErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    let isValid = true;
+    
+    Object.entries(formData).forEach(([name, value]) => {
+      if (name === 'phone' || name === 'customerName' || name === 'vendorId' || 
+          name === 'serviceName' || name === 'time' || name === 'date' || name === 'customerEmail') {
+        if (!value) {
+          errors[name] = `${name === 'vendorId' ? 'Professional' : name} is required`;
+          isValid = false;
+        } else {
+          const fieldError = validateField(name, value);
+          if (fieldError) {
+            errors[name] = fieldError;
+            isValid = false;
+          }
+        }
+      }
+    });
+    
+    setFormErrors(errors);
+    return isValid;
+  };
+
+  const hasErrors = () => {
+    const touchedErrors = Object.keys(touchedFields)
+      .filter(key => touchedFields[key])
+      .some(key => formErrors[key]);
+    return touchedErrors;
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
     setMessage('');
+    setError('');
+    
+    if (!validateForm()) {
+      setError('Please correct the errors in the form');
+      return;
+    }
+    
     setLoading(true);
     setBookingSuccess(false);
+    
     try {
+      setMessage('Processing your booking...');
+      
       const res = await bookAppointment(formData);
       setMessage(res.data.message || 'Your appointment has been successfully booked!');
       setBookingSuccess(true);
+      
+      // Clear form after successful booking
       setFormData({ 
         phone: '', 
+        customerName: '',
         vendorId: '', 
         serviceName: 'Haircut', 
         time: '',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        customerEmail: ''
       });
+      
+      // Scroll to top to show success message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
     } catch (err) {
       console.error("Booking error:", err);
-      setMessage('Unable to book your appointment. Please check your details and try again.');
+      // Show specific error from the server if available
+      setError(err.response?.data?.message || 'Unable to book your appointment. Please check your details and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Find selected vendor category
   const selectedVendor = vendors.find(vendor => vendor._id === formData.vendorId);
   const vendorCategory = selectedVendor?.category?.toLowerCase() || '';
   const availableServices = 
@@ -107,141 +205,161 @@ const BookAppointment = () => {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </span>
-                  <input 
-                    id="phone"
-                    type="tel" 
-                    name="phone" 
-                    value={formData.phone}
-                    placeholder="Enter your phone number" 
-                    required
-                    onChange={handleChange} 
-                    className="w-full border border-gray-300 p-3 pl-10 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" 
-                  />
-                </div>
-                <p className="text-xs text-gray-500">Format: 10 digit number</p>
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="vendorSelect" className="block text-sm font-medium text-gray-700">
-                  Select Professional <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div>
+                <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">Your Name <span className="text-red-500">*</span></label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </span>
-                  <select
-                    id="vendorSelect"
-                    name="vendorId"
-                    value={formData.vendorId}
+                  <input
+                    type="text"
+                    id="customerName"
+                    name="customerName"
+                    value={formData.customerName}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-300 p-3 pl-10 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                  >
-                    <option value="">-- Select a professional --</option>
-                    {vendors.map(vendor => (
-                      <option key={vendor._id} value={vendor._id}>
-                        {vendor.name} - {vendor.category}
-                      </option>
-                    ))}
-                  </select>
+                    className={`w-full border ${formErrors.customerName ? 'border-red-300' : 'border-gray-300'} p-3 pl-10 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
+                  />
                 </div>
-                <p className="text-xs text-gray-500">Choose from our list of qualified professionals</p>
+                {formErrors.customerName && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.customerName}</p>
+                )}
+              </div>
+              
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number <span className="text-red-500">*</span></label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </span>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    pattern="[0-9]{10}"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    className={`w-full border ${formErrors.phone ? 'border-red-300' : 'border-gray-300'} p-3 pl-10 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`} 
+                  />
+                </div>
+                {formErrors.phone ? (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.phone}</p>
+                ) : (
+                  <p className="text-xs text-gray-500">Format: 10 digit number</p>
+                )}
+              </div>
+              
+              <div>
+                <label htmlFor="customerEmail" className="block text-sm font-medium text-gray-700">Email <span className="text-red-500">*</span></label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </span>
+                  <input
+                    type="email"
+                    id="customerEmail"
+                    name="customerEmail"
+                    value={formData.customerEmail}
+                    onChange={handleChange}
+                    required
+                    className={`w-full border ${formErrors.customerEmail ? 'border-red-300' : 'border-gray-300'} p-3 pl-10 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
+                  />
+                </div>
+                {formErrors.customerEmail && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.customerEmail}</p>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="serviceName" className="block text-sm font-medium text-gray-700">
-                  Service <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </span>
-                  <select 
-                    id="serviceName"
-                    name="serviceName" 
-                    value={formData.serviceName}
-                    required
-                    onChange={handleChange} 
-                    className="w-full border border-gray-300 p-3 pl-10 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                  >
-                    <option value="">-- Select a service --</option>
-                    {availableServices.map(service => (
-                      <option key={service} value={service}>
-                        {service}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <p className="text-xs text-gray-500">Select the service you need</p>
+              <div>
+                <label htmlFor="vendorId" className="block text-sm font-medium text-gray-700">Select Professional <span className="text-red-500">*</span></label>
+                <select
+                  id="vendorId"
+                  name="vendorId"
+                  value={formData.vendorId}
+                  onChange={handleChange}
+                  required
+                  className={`w-full border ${formErrors.vendorId ? 'border-red-300' : 'border-gray-300'} p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
+                >
+                  <option value="">Choose a professional</option>
+                  {vendors.map(vendor => (
+                    <option key={vendor._id} value={vendor._id}>
+                      {vendor.name} ({vendor.category})
+                    </option>
+                  ))}
+                </select>
+                {formErrors.vendorId && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.vendorId}</p>
+                )}
               </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-                  Appointment Date <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </span>
-                  <input 
-                    id="date"
-                    type="date" 
-                    name="date" 
-                    min={new Date().toISOString().split('T')[0]}
-                    value={formData.date}
-                    required
-                    onChange={handleChange} 
-                    className="w-full border border-gray-300 p-3 pl-10 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" 
-                  />
-                </div>
-                <p className="text-xs text-gray-500">Choose your preferred date</p>
+
+              <div>
+                <label htmlFor="serviceName" className="block text-sm font-medium text-gray-700">Service <span className="text-red-500">*</span></label>
+                <select
+                  id="serviceName"
+                  name="serviceName"
+                  value={formData.serviceName}
+                  onChange={handleChange}
+                  required
+                  className={`w-full border ${formErrors.serviceName ? 'border-red-300' : 'border-gray-300'} p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
+                >
+                  {availableServices.map(service => (
+                    <option key={service} value={service}>
+                      {service}
+                    </option>
+                  ))}
+                </select>
+                {formErrors.serviceName && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.serviceName}</p>
+                )}
               </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <label htmlFor="time" className="block text-sm font-medium text-gray-700">
-                  Preferred Time <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </span>
-                  <input 
-                    id="time"
-                    type="time" 
-                    name="time" 
-                    value={formData.time}
-                    required
-                    onChange={handleChange} 
-                    className="w-full border border-gray-300 p-3 pl-10 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" 
-                  />
-                </div>
-                <p className="text-xs text-gray-500">Select a convenient time slot (business hours: 9:00 AM - 7:00 PM)</p>
+
+              <div>
+                <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date <span className="text-red-500">*</span></label>
+                <input
+                  type="date"
+                  id="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                  min={new Date().toISOString().split('T')[0]}
+                  className={`w-full border ${formErrors.date ? 'border-red-300' : 'border-gray-300'} p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
+                />
+                {formErrors.date && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.date}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="time" className="block text-sm font-medium text-gray-700">Time <span className="text-red-500">*</span></label>
+                <input
+                  type="time"
+                  id="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleChange}
+                  required
+                  className={`w-full border ${formErrors.time ? 'border-red-300' : 'border-gray-300'} p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
+                />
+                {formErrors.time && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.time}</p>
+                )}
               </div>
             </div>
             
-            <div className="pt-4 border-t border-gray-200">
+            {/* Submit button changed to use the hasErrors function */}
+            <div className="mt-8">
               <button 
                 type="submit" 
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center"
+                disabled={loading || hasErrors()}
+                className={`w-full bg-blue-600 ${loading || hasErrors() ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'} text-white font-medium py-3 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center`}
               >
                 {loading ? (
                   <>
@@ -253,22 +371,6 @@ const BookAppointment = () => {
                   </>
                 ) : 'Confirm Appointment'}
               </button>
-            </div>
-            
-            {message && !bookingSuccess && (
-              <div className="mt-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
-                <p className="font-bold">Booking Error</p>
-                <p>{message}</p>
-              </div>
-            )}
-            
-            <div className="text-sm text-gray-500 mt-6">
-              <p className="mb-2">
-                <span className="font-medium">Note:</span> We'll confirm your appointment via SMS after submission.
-              </p>
-              <p>
-                <span className="font-medium">Cancellation policy:</span> Please cancel at least 4 hours before your appointment to avoid charges.
-              </p>
             </div>
           </form>
         )}

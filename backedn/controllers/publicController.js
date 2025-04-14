@@ -2,6 +2,7 @@
 const Booking = require('../models/Booking');
 const Vendor = require('../models/Vendor');
 const Appointment = require('../models/Appointment');
+const { generateNextToken } = require('../utils/generateToken');
 const { 
   sendBookingSMS, 
   sendCancellationSMS,
@@ -10,9 +11,9 @@ const {
 
 const bookAppointment = async (req, res) => {
   try {
-    const { vendorId, phone: customerPhone, serviceName, time, date, customerName, customerEmail, notes } = req.body;
+    const { vendorId, phone: customerPhone, customerName, serviceName, time, date, customerEmail, notes } = req.body;
 
-    if (!vendorId || !customerPhone || !serviceName || !time || !date) {
+    if (!vendorId || !customerPhone || !serviceName || !time || !date || !customerName) {
       return res.status(400).json({ message: 'Required fields missing. Please fill all mandatory fields.' });
     }
 
@@ -33,17 +34,14 @@ const bookAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Invalid phone number format. Please enter a valid phone number.' });
     }
 
-    // Count how many bookings already exist for that vendor on that date
-    const existingBookings = await Booking.find({ vendor: vendorId, date });
-
-    // Assign next token number
-    const nextToken = existingBookings.length + 1;
+    // Generate next token number for this vendor for the specific date
+    const nextToken = await generateNextToken(vendorId, date, Booking);
 
     // Save booking
     const booking = new Booking({
       vendor: vendorId,
       customerPhone,
-      customerName,
+      customerName, // Save the customer name
       customerEmail,
       serviceName,
       time,
@@ -85,38 +83,94 @@ const bookAppointment = async (req, res) => {
   }
 };
 
-// Add missing cancelAppointment implementation
+// Cancel appointment with time restriction and improved performance
 const cancelAppointment = async (req, res) => {
   try {
-    const { phone, token } = req.body;
+    const { token, phone, appointmentId } = req.body;
     
-    if (!phone || !token) {
-      return res.status(400).json({ message: 'Phone and token are required' });
+    let appointment;
+    let queryStartTime = Date.now();
+    
+    // Use more efficient query approach
+    if (appointmentId) {
+      appointment = await Booking.findById(appointmentId).populate('vendor', 'name');
+    } else if (token && phone) {
+      // Create index for this query pattern in your MongoDB setup
+      appointment = await Booking.findOne({ token, customerPhone: phone }).populate('vendor', 'name');
+    } else {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Either appointment ID or both token and phone are required' 
+      });
     }
     
-    // Find the booking
-    const booking = await Booking.findOne({
-      customerPhone: phone,
-      token: token
+    console.log(`Query execution time: ${Date.now() - queryStartTime}ms`);
+    
+    if (!appointment) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Appointment not found. Please check your details.' 
+      });
+    }
+
+    // Check if appointment is already cancelled
+    if (appointment.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'This appointment is already cancelled.'
+      });
+    }
+    
+    // Check if appointment is within 4 hours (as per cancellation policy)
+    const appointmentDateTime = new Date(`${appointment.date}T${appointment.time}`);
+    const currentTime = new Date();
+    const timeDiff = appointmentDateTime - currentTime;
+    const hoursDiff = timeDiff / (1000 * 60 * 60);
+    
+    let cancellationFee = 0;
+    if (hoursDiff < 4) {
+      // Set cancellation fee flag but still allow cancellation
+      cancellationFee = 30; // 30% fee for late cancellation
+    }
+    
+    // Update appointment status - use more efficient direct update
+    const updateStartTime = Date.now();
+    await Booking.updateOne(
+      { _id: appointment._id },
+      { $set: { status: 'cancelled', cancelledAt: new Date() } }
+    );
+    
+    console.log(`Update execution time: ${Date.now() - updateStartTime}ms`);
+    
+    // Send cancellation SMS if we have the vendor name
+    try {
+      if (appointment.customerPhone && appointment.vendor?.name) {
+        await sendCancellationSMS({
+          to: appointment.customerPhone,
+          vendorName: appointment.vendor.name,
+          time: appointment.time,
+          date: appointment.date,
+          token: appointment.token
+        });
+      }
+    } catch (smsError) {
+      console.error('Failed to send cancellation SMS:', smsError);
+      // Continue with the response even if SMS fails
+    }
+    
+    res.json({
+      success: true,
+      message: hoursDiff < 4 
+        ? `Your appointment has been cancelled. Note: a ${cancellationFee}% cancellation fee applies for late cancellations.`
+        : 'Your appointment has been successfully cancelled.',
+      cancellationFee: hoursDiff < 4 ? cancellationFee : 0
     });
-    
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found with the provided details' });
-    }
-    
-    // Check if already cancelled
-    if (booking.status === 'cancelled') {
-      return res.status(400).json({ message: 'Booking is already cancelled' });
-    }
-    
-    // Update status to cancelled
-    booking.status = 'cancelled';
-    await booking.save();
-    
-    res.json({ message: 'Appointment cancelled successfully', bookingId: booking._id });
   } catch (error) {
     console.error('Error cancelling appointment:', error);
-    res.status(500).json({ message: 'Server error during cancellation' });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to cancel appointment. Please try again.'
+    });
   }
 };
 
@@ -244,11 +298,10 @@ const searchAppointmentsByPhone = async (req, res) => {
       });
     }
     
-    // Find all non-cancelled appointments for this phone number
+    // Find all appointments for this phone number
     const appointments = await Booking.find({ 
-      customerPhone: phone,
-      status: { $ne: 'cancelled' }
-    }).sort({ date: 1, time: 1 }).populate('vendor', 'name');
+      customerPhone: phone
+    }).sort({ date: 1, time: 1 }).populate('vendor', 'name category');
     
     if (appointments.length === 0) {
       return res.status(404).json({ 
@@ -266,9 +319,14 @@ const searchAppointmentsByPhone = async (req, res) => {
         service: apt.serviceName,
         token: apt.token,
         status: apt.status || 'booked',
-        vendorName: apt.vendor ? apt.vendor.name : 'Unknown'
+        vendorName: apt.vendor ? apt.vendor.name : 'Unknown',
+        vendorId: apt.vendor ? apt.vendor._id : null,
+        vendorCategory: apt.vendor ? apt.vendor.category : null,
+        customerName: apt.customerName,
+        customerPhone: apt.customerPhone
       }))
     });
+    
   } catch (error) {
     console.error('Error searching appointments:', error);
     res.status(500).json({ 
@@ -278,57 +336,10 @@ const searchAppointmentsByPhone = async (req, res) => {
   }
 };
 
-// Cancel appointment with time restriction
-const cancelAppointmentWithRestriction = async (req, res) => {
-  try {
-    const { token, phone } = req.body;
-    
-    const appointment = await Appointment.findOne({ token, phone });
-    
-    if (!appointment) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Appointment not found. Please check your details.' 
-      });
-    }
-    
-    // Check if appointment is within 4 hours (as per cancellation policy)
-    const appointmentDateTime = new Date(`${appointment.date}T${appointment.time}`);
-    const currentTime = new Date();
-    const timeDiff = appointmentDateTime - currentTime;
-    const hoursDiff = timeDiff / (1000 * 60 * 60);
-    
-    if (hoursDiff < 4) {
-      return res.status(400).json({
-        success: false,
-        message: 'Appointments can only be cancelled at least 4 hours before the scheduled time.'
-      });
-    }
-    
-    // Update appointment status
-    appointment.status = 'cancelled';
-    await appointment.save();
-    
-    // Here you could also add notification logic (SMS/email)
-    
-    res.json({
-      success: true,
-      message: 'Your appointment has been successfully cancelled.'
-    });
-  } catch (error) {
-    console.error('Error cancelling appointment:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to cancel appointment. Please try again.'
-    });
-  }
-};
-
 module.exports = {
   bookAppointment,
   cancelAppointment,
   getBookingQueueStatus,
   getBookingStatus,
-  searchAppointmentsByPhone,
-  cancelAppointmentWithRestriction
+  searchAppointmentsByPhone
 };

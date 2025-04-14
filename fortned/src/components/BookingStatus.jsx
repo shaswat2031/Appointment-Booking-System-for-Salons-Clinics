@@ -40,6 +40,11 @@ const BookingStatus = () => {
     }
   };
 
+  const validatePhone = (value) => {
+    // Allow only numbers and basic formatting characters
+    return value.replace(/[^\d+\s()-]/g, '');
+  };
+
   return (
     <Card>
       <h3 className="text-lg font-semibold mb-4">Check Your Booking Status</h3>
@@ -49,8 +54,10 @@ const BookingStatus = () => {
           label="Phone Number"
           type="tel"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Enter phone used for booking"
+          onChange={(e) => setPhone(validatePhone(e.target.value))}
+          placeholder="Enter your 10-digit phone number"
+          pattern="[0-9+\s()-]+"
+          className="focus:ring-2 focus:ring-blue-500"
           required
         />
         
@@ -59,7 +66,8 @@ const BookingStatus = () => {
           type="text"
           value={token}
           onChange={(e) => setToken(e.target.value)}
-          placeholder="Enter your booking token"
+          placeholder="Token number provided during booking"
+          className="focus:ring-2 focus:ring-blue-500"
           required
         />
         
@@ -103,8 +111,8 @@ const BookingStatus = () => {
             </div>
           )}
           
-          {/* Show completed by information if booking is completed */}
-          {booking.status === 'completed' && booking.completedBy && (
+          {/* Show completed by information if booking is done */}
+          {booking.status === 'done' && booking.completedBy && (
             <p className="mt-2"><span className="font-medium">Completed by:</span> {booking.completedBy}</p>
           )}
         </div>

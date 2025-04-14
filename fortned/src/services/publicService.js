@@ -36,7 +36,7 @@ export const checkBookingStatusByQuery = (params) =>
 
 /**
  * Search appointments by phone number
- * @param {string} phone - Phone number to search
+ * @param {string} phone - Customer phone number
  */
 export const searchAppointmentsByPhone = (phone) =>
   API.get(`/public/search-by-phone/${phone}`);

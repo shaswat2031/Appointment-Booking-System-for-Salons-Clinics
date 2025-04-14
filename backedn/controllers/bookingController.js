@@ -132,7 +132,7 @@ const updateEstimatedWaitTime = async (req, res) => {
   }
 };
 
-// New function to update token number
+// Update token number function to consider dates
 const updateTokenNumber = async (req, res) => {
   try {
     const { id } = req.params;
@@ -151,6 +151,34 @@ const updateTokenNumber = async (req, res) => {
     // Ensure the vendor owns this booking
     if (booking.vendor.toString() !== req.vendor.id) {
       return res.status(403).json({ message: 'Not authorized to update this booking' });
+    }
+
+    // Format booking date for consistency
+    const bookingDateStr = new Date(booking.date).toISOString().split('T')[0];
+
+    // Check if the token is already in use by this vendor on the same date
+    const existingWithToken = await Booking.findOne({
+      vendor: booking.vendor,
+      date: bookingDateStr,
+      token: token,
+      _id: { $ne: id } // Exclude the current booking
+    });
+
+    if (existingWithToken) {
+      return res.status(400).json({ 
+        message: 'Token number already in use by another booking on the same date. Please choose a different number.' 
+      });
+    }
+
+    // Update vendor's token counter for this date if needed
+    const vendor = await Vendor.findById(booking.vendor);
+    if (!vendor.tokensByDate) {
+      vendor.tokensByDate = {};
+    }
+    
+    if (!vendor.tokensByDate[bookingDateStr] || token > vendor.tokensByDate[bookingDateStr]) {
+      vendor.tokensByDate[bookingDateStr] = token;
+      await vendor.save();
     }
 
     booking.token = token;
