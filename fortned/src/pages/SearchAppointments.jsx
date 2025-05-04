@@ -1,69 +1,115 @@
-import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
-import { searchAppointmentsByPhone } from '../services/publicService';
-import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import ContactFooter from "../components/ContactFooter";
+import { searchAppointmentsByPhone } from "../services/publicService";
+import { format } from "date-fns";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const SearchAppointments = () => {
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState("");
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const phoneParam = params.get("phone");
+    if (phoneParam) {
+      setPhone(phoneParam);
+      handleSearch(phoneParam);
+    }
+  }, [location]);
+
+  const validatePhone = (phoneNumber) => {
+    const digitsOnly = phoneNumber.replace(/\D/g, "");
+    return (
+      digitsOnly.length === 10 ||
+      (digitsOnly.length >= 11 && digitsOnly.length <= 14)
+    );
+  };
+
+  const handleSearch = async (phoneToSearch = phone) => {
+    if (!phoneToSearch) {
+      setError("Please enter a phone number");
+      return;
+    }
+
+    if (!validatePhone(phoneToSearch)) {
+      setError("Please enter a valid phone number (10 digits)");
+      return;
+    }
+
     setLoading(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
     setAppointments([]);
 
     try {
-      const response = await searchAppointmentsByPhone(phone);
+      const response = await searchAppointmentsByPhone(phoneToSearch);
       if (response.data.success) {
         setAppointments(response.data.appointments);
+
         if (response.data.appointments.length > 0) {
-          setMessage(`Found ${response.data.appointments.length} appointment(s).`);
+          setMessage(
+            `Found ${response.data.appointments.length} upcoming appointment(s).`
+          );
         } else {
-          setMessage('No appointments found for this phone number.');
+          setMessage("No upcoming appointments found for this phone number.");
         }
       }
     } catch (err) {
-      console.error('Search error:', err);
-      setError(err.response?.data?.message || 'Error searching for appointments.');
+      console.error("Search error:", err);
+      setError(
+        err.response?.data?.message || "Error searching for appointments."
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    handleSearch();
+  };
+
   const formatDate = (dateString) => {
     try {
-      return format(new Date(dateString), 'MMMM dd, yyyy');
+      return format(new Date(dateString), "MMMM dd, yyyy");
     } catch (e) {
       return dateString;
     }
   };
 
   const handleCancelAppointment = (appointment) => {
-    navigate('/cancel-appointment', { 
-      state: { 
+    navigate("/cancel-appointment", {
+      state: {
         preSelectedPhone: phone,
-        preSelectedAppointment: appointment 
-      } 
+        preSelectedAppointment: appointment,
+      },
     });
   };
 
   return (
     <>
       <Navbar />
-      <div className="max-w-4xl mx-auto p-6 my-8 bg-white rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Find Your Appointments</h2>
-        
-        <form onSubmit={handleSubmit} className="mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+      <div className="max-w-4xl mx-auto my-8 p-5 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+          Find Your Appointments
+        </h2>
+
+        <form
+          onSubmit={handleSubmit}
+          className="mb-8 bg-gray-50 p-6 rounded-lg"
+        >
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="flex-1 min-w-[250px]">
+              <label
+                htmlFor="phone"
+                className="block mb-2 font-medium text-gray-700"
+              >
                 Phone Number
               </label>
               <input
@@ -71,101 +117,150 @@ const SearchAppointments = () => {
                 id="phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="Enter your phone number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your phone number (10 digits)"
                 required
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition"
               />
+              <p className="mt-2 text-sm text-gray-600">
+                Enter the phone number you used for booking
+              </p>
             </div>
-            <div className="self-end">
+            <div className="flex-1 min-w-[250px]">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center"
+                className="w-full px-5 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition disabled:opacity-60 disabled:cursor-not-allowed font-medium"
               >
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Searching...
-                  </span>
-                ) : 'Search Appointments'}
+                {loading ? "Searching..." : "Search Appointments"}
               </button>
             </div>
           </div>
         </form>
-        
+
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-            <p>{error}</p>
+          <div className="p-4 mb-4 bg-red-50 text-red-700 rounded-md">
+            {error}
           </div>
         )}
-        
+
         {message && !error && (
-          <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6">
-            <p>{message}</p>
+          <div className="p-4 mb-4 bg-green-50 text-green-700 rounded-md">
+            {message}
           </div>
         )}
-        
+
         {appointments.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token #</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {appointments.map((appointment) => (
-                  <tr key={appointment.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{appointment.service}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(appointment.date)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{appointment.time}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{appointment.token}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        appointment.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                        appointment.status === 'done' ? 'bg-green-100 text-green-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{appointment.vendorName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {appointment.status !== 'cancelled' && appointment.status !== 'done' && (
-                        <button
-                          onClick={() => handleCancelAppointment(appointment)}
-                          className="text-red-600 hover:text-red-900 font-medium"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </td>
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">
+              Your Upcoming Appointments
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full mt-4">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                      Service
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                      Date & Time
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                      Vendor
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {appointments.map((appointment) => (
+                    <tr
+                      key={appointment.id}
+                      className="border-b border-gray-200 hover:bg-gray-50 transition"
+                    >
+                      <td className="px-4 py-4 text-gray-800">
+                        {appointment.service}
+                      </td>
+                      <td className="px-4 py-4 text-gray-800">
+                        <div className="font-medium">
+                          {formatDate(appointment.date)}
+                        </div>
+                        <div className="text-gray-600">{appointment.time}</div>
+                      </td>
+                      <td className="px-4 py-4 text-gray-800">
+                        {appointment.vendorName}
+                      </td>
+                      <td className="px-4 py-4">
+                        {appointment.status === "booked" ? (
+                          <span className="px-2 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                            Confirmed
+                          </span>
+                        ) : (
+                          <span
+                            className={`px-2 py-1 ${
+                              appointment.status === "cancelled"
+                                ? "bg-red-100 text-red-800"
+                                : appointment.status === "done"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            } text-sm rounded-full`}
+                          >
+                            {appointment.status}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4">
+                        {appointment.status !== "cancelled" &&
+                          appointment.status !== "done" && (
+                            <button
+                              onClick={() =>
+                                handleCancelAppointment(appointment)
+                              }
+                              className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
-        
-        {appointments.length === 0 && !loading && message && (
-          <div className="text-center py-8 text-gray-500">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="mt-2 text-md">No appointments found for this phone number.</p>
-            <p className="mt-1 text-sm">Please check the phone number and try again.</p>
+
+        {appointments.length === 0 && !loading && message && !error && (
+          <div className="mt-8 p-6 bg-gray-50 rounded-lg text-center">
+            <p className="text-xl font-semibold text-gray-700 mb-2">
+              No upcoming appointments found
+            </p>
+            <p className="text-gray-600 mb-6">
+              We couldn't find any upcoming appointments for {phone}.
+            </p>
+            <div className="p-5 bg-white rounded-lg shadow-sm mb-6">
+              <p className="font-medium mb-2">You can:</p>
+              <ul className="list-disc list-inside text-left text-gray-700 space-y-1">
+                <li>Double-check your phone number</li>
+                <li>Book a new appointment</li>
+                <li>Contact support if you believe this is an error</li>
+              </ul>
+            </div>
+            <div className="flex justify-center">
+              <button
+                onClick={() => navigate("/book-appointment")}
+                className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition font-medium"
+              >
+                Book New Appointment
+              </button>
+            </div>
           </div>
         )}
       </div>
+      <ContactFooter />
     </>
   );
 };

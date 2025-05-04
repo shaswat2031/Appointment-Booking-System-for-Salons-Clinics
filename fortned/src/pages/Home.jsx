@@ -151,87 +151,87 @@ const Home = () => {
 
       {/* Featured Providers */}
       <section className="py-20 bg-gray-50">
-  <div className="container mx-auto px-4">
-    <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-      Featured Providers
-    </h2>
-    <div className="w-24 h-1 bg-blue-600 mx-auto mb-6"></div>
-    <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto text-lg">
-      These top-rated service providers are ready to welcome you with exceptional experiences.
-    </p>
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            Featured Providers
+          </h2>
+          <div className="w-24 h-1 bg-blue-600 mx-auto mb-6"></div>
+          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto text-lg">
+            These top-rated service providers are ready to welcome you with
+            exceptional experiences.
+          </p>
 
-    {loading ? (
-      <div className="flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    ) : error ? (
-      <p className="text-center text-red-500">{error}</p>
-    ) : featuredVendors.length > 0 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {featuredVendors.map((vendor) => (
-          <Card
-            key={vendor._id}
-            className="hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 bg-white rounded-2xl"
-          >
-            <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                {vendor.name}
-              </h3>
-              <p className="text-blue-600 text-sm font-medium mb-1 flex items-center">
-                <i className="fas fa-tag mr-2"></i>
-                {vendor.category}
-              </p>
-              <div className="flex items-center text-gray-500 text-sm mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1 text-blue-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                {vendor.location}
-              </div>
-              <Link
-                to={`/book`}
-                className="block w-full text-center py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                Book Now
-              </Link>
+          {loading ? (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             </div>
-          </Card>
-        ))}
-      </div>
-    ) : (
-      <p className="text-center text-lg text-gray-600">
-        No featured vendors available at the moment.
-      </p>
-    )}
+          ) : error ? (
+            <p className="text-center text-red-500">{error}</p>
+          ) : featuredVendors.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+              {featuredVendors.map((vendor) => (
+                <Card
+                  key={vendor._id}
+                  className="hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 bg-white rounded-2xl"
+                >
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      {vendor.name}
+                    </h3>
+                    <p className="text-blue-600 text-sm font-medium mb-1 flex items-center">
+                      <i className="fas fa-tag mr-2"></i>
+                      {vendor.category}
+                    </p>
+                    <div className="flex items-center text-gray-500 text-sm mb-4">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1 text-blue-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      {vendor.location}
+                    </div>
+                    <Link
+                      to={`/book`}
+                      className="block w-full text-center py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      Book Now
+                    </Link>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-lg text-gray-600">
+              No featured vendors available at the moment.
+            </p>
+          )}
 
-    <div className="text-center mt-14">
-      <Button
-        to="/book"
-        variant="outline"
-        className="shadow-md hover:shadow-lg px-6 py-2 rounded-full border-blue-600 text-blue-600 hover:bg-blue-50 font-medium transition-all duration-300"
-      >
-        View All Providers
-      </Button>
-    </div>
-  </div>
-</section>
-
+          <div className="text-center mt-14">
+            <Button
+              to="/book"
+              variant="outline"
+              className="shadow-md hover:shadow-lg px-6 py-2 rounded-full border-blue-600 text-blue-600 hover:bg-blue-50 font-medium transition-all duration-300"
+            >
+              View All Providers
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Affordable Plans */}
       <section className="py-20 bg-gray-50">
@@ -300,9 +300,9 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <h3 className="text-3xl font-bold mb-4">AppointMate</h3>
               <p className="text-gray-400 mb-4">
@@ -341,9 +341,9 @@ const Home = () => {
             <div>
               <h4 className="text-xl font-semibold mb-4">Contact</h4>
               <p className="text-gray-400 mb-2">
-                Email: PrasadShaswat9265@gmail.com
+                Email: prasadshaswat9265@gmail.com
               </p>
-              <p className="text-gray-400 mb-2">Phone: +91 XXXXXXXXXX</p>
+              <p className="text-gray-400 mb-2">Phone: +91 9265318481</p>
             </div>
           </div>
           <div className="border-t border-gray-700 pt-6 text-center text-sm text-gray-500">
