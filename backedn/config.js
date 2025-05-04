@@ -1,6 +1,6 @@
-const API_BASE_URL =
+const BACKEND_URL =
   "https://appointment-booking-system-for-salons-br4o.onrender.com";
 
 module.exports = {
-  API_BASE_URL,
+  BACKEND_URL,
 };

@@ -1,7 +1,5 @@
-const { API_BASE_URL } = require("./config");
-const apiService = require("./apiService");
+const { BACKEND_URL } = require("./config");
 
 module.exports = {
-  API_BASE_URL,
-  apiService,
+  BACKEND_URL,
 };
