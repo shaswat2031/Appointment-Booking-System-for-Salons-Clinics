@@ -12,7 +12,7 @@ import VendorLogin from "./pages/VendorLogin";
 import VendorRegister from "./pages/VendorRegister";
 import VendorDashboard from "./pages/VendorDashboard";
 import BookWithVendor from "./pages/BookWithVendor";
-import VendorIdPage from "./pages/VendorIdPage"; // New import for VendorIdPage
+import VendorIdPage from "./pages/vendoridpage"; // New import for VendorIdPage
 import NotFound from "./pages/NotFound";
 import Payment from "./pages/Payment";
 
