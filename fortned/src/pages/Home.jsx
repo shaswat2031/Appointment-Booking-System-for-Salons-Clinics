@@ -4,41 +4,29 @@ import Navbar from "../components/Navbar";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import { getVendors } from "../services/publicService";
+import {
+  FaCheck,
+  FaTimes,
+  FaTag,
+  FaMapMarkerAlt,
+  FaSearch,
+  FaCalendarAlt,
+  FaClock,
+  FaPhoneAlt,
+  FaStar,
+  FaHeart,
+} from "react-icons/fa";
 
 const Home = () => {
   const [featuredVendors, setFeaturedVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const CheckIcon = () => (
-    <svg
-      className="w-4 h-4 text-green-500 mr-2 flex-shrink-0"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M5 13l4 4L19 7"
-      />
-    </svg>
-  );
 
+  const CheckIcon = () => (
+    <FaCheck className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+  );
   const CrossIcon = () => (
-    <svg
-      className="w-4 h-4 mr-2 flex-shrink-0 text-gray-400"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M6 18L18 6M6 6l12 12"
-      />
-    </svg>
+    <FaTimes className="w-4 h-4 mr-2 flex-shrink-0 text-gray-400" />
   );
 
   useEffect(() => {
@@ -59,165 +47,193 @@ const Home = () => {
   return (
     <>
       <Navbar />
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 animate__animated animate__fadeIn">
-            Book Appointments with Ease
+      {/* Hero Section with Enhanced Design */}
+      <section className="relative bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-pattern opacity-10">
+          <div className="absolute right-0 top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
+          <div className="absolute left-10 bottom-10 w-48 h-48 bg-blue-300 opacity-10 rounded-full blur-2xl"></div>
+        </div>
+        <div className="absolute -bottom-10 left-0 w-full h-20 bg-white transform -skew-y-2"></div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 animate__animated animate__fadeIn">
+            Your Time, Your Terms{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200">
+              Book Smarter
+            </span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto opacity-90">
-            Connect with local salons, clinics, and service providers in just a
-            few clicks.
+          <p className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto opacity-90">
+            No more waiting on hold or playing phone tag. Connect with your
+            favorite local spots in just a few taps!
           </p>
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             <Button
               to="/book"
               variant="outline"
               size="lg"
-              className="bg-white hover:bg-gray-100 shadow-lg"
+              className="bg-white hover:bg-gray-100 shadow-lg transform transition-transform hover:scale-105 flex items-center justify-center gap-2"
             >
-              Book Now
+              <FaClock className="text-blue-700" /> Book Now
             </Button>
-            <Button to="/check-status" size="lg" className="shadow-lg">
-              Check Booking Status
+            <Button
+              to="/cancel"
+              size="lg"
+              className="shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transform transition-transform hover:scale-105 flex items-center justify-center gap-2"
+            >
+              <FaSearch className="animate-pulse" /> Cancel Your Booking
             </Button>
+          </div>
+          <div className="mt-10 flex justify-center gap-8">
+            <div className="text-center">
+              <div className="font-bold text-3xl">10+</div>
+              <div className="text-blue-200">Local Businesses</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-3xl">50+</div>
+              <div className="text-blue-200">Happy Customers</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-3xl">4.1</div>
+              <div className="text-blue-200">Average Rating</div>
+            </div>
           </div>
         </div>
       </section>
-
-      {/* How It Works */}
-      <section className="py-20 bg-gray-50">
+      {/* How It Works - More Engaging */}
+      <section className="py-24 bg-white relative">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            How It Works
+            How It <span className="text-indigo-600">Actually</span> Works
           </h2>
-          <div className="w-24 h-1 bg-blue-600 mx-auto mb-16"></div>
+          <div className="w-24 h-1 bg-indigo-600 mx-auto mb-6"></div>
+          <p className="text-center text-gray-700 mb-16 max-w-2xl mx-auto text-lg">
+            We've made booking so easy your grandma could do it. (And yes, we've
+            tested this with real grandmas!)
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
                 icon: "search",
-                title: "Find a Provider",
+                title: "Find Your Perfect Match",
                 description:
-                  "Browse and choose from available salons, clinics, and service providers.",
+                  "Browse local spots with real reviews from people just like you. Filter by what matters most to you.",
               },
               {
                 icon: "calendar",
-                title: "Book an Appointment",
+                title: "Pick a Time That Works",
                 description:
-                  "Select a service, choose a date and time that works best for your schedule.",
+                  "See real-time availability and book anytime, even at 3 AM in your pajamas. We don't judge.",
               },
               {
                 icon: "check",
-                title: "Get Confirmation",
+                title: "You're All Set!",
                 description:
-                  "Receive instant booking confirmation with a unique token for your appointment.",
+                  "Get instant confirmation and reminders so you never miss an appointment again. No more sticky notes!",
               },
             ].map((step, index) => (
               <Card
                 key={index}
-                className="text-center hover:shadow-xl transition-all duration-300 p-8 border-t-4 border-blue-500"
+                className="text-center hover:shadow-xl transition-all duration-300 p-8 border-t-4 border-indigo-500 group hover:-translate-y-2 transform rounded-xl"
               >
                 <div className="flex justify-center mb-6">
-                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center shadow-inner">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-10 w-10 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d={
-                          step.icon === "search"
-                            ? "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            : step.icon === "calendar"
-                            ? "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            : "M5 13l4 4L19 7"
-                        }
-                      />
-                    </svg>
+                  <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-blue-100 rounded-full flex items-center justify-center shadow-inner group-hover:bg-indigo-200 transition-colors">
+                    {step.icon === "search" ? (
+                      <FaSearch className="h-10 w-10 text-indigo-600" />
+                    ) : step.icon === "calendar" ? (
+                      <FaCalendarAlt className="h-10 w-10 text-indigo-600" />
+                    ) : (
+                      <FaCheck className="h-10 w-10 text-indigo-600" />
+                    )}
                   </div>
                 </div>
                 <h3 className="text-2xl font-semibold mb-3">{step.title}</h3>
                 <p className="text-gray-600">{step.description}</p>
+                <div className="mt-6 h-1 w-12 bg-indigo-200 mx-auto group-hover:w-24 transition-all duration-300"></div>
               </Card>
             ))}
           </div>
         </div>
       </section>
-
-      {/* Featured Providers */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section className="py-24 bg-gradient-to-br from-gray-50 to-indigo-50 relative">
+        <div className="absolute top-0 left-0 right-0 h-16 bg-white transform -skew-y-2"></div>
+        <div className="container mx-auto px-4 pt-10">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            Featured Providers
+            Places People <span className="text-indigo-600">Love</span>
           </h2>
-          <div className="w-24 h-1 bg-blue-600 mx-auto mb-6"></div>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto text-lg">
-            These top-rated service providers are ready to welcome you with
-            exceptional experiences.
+          <div className="w-24 h-1 bg-indigo-600 mx-auto mb-6"></div>
+          <p className="text-center text-gray-700 mb-12 max-w-2xl mx-auto text-lg">
+            These local favorites consistently deliver experiences that keep
+            customers coming back. Each one has been vetted for quality and
+            reliability.
           </p>
 
           {loading ? (
             <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
           ) : error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : featuredVendors.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
               {featuredVendors.map((vendor) => (
-                <Card
+                <div
                   key={vendor._id}
-                  className="hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 bg-white rounded-2xl"
+                  className="relative transform perspective-1000 hover:-rotate-x-2 hover:rotate-y-1 transition-all duration-300"
                 >
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      {vendor.name}
-                    </h3>
-                    <p className="text-blue-600 text-sm font-medium mb-1 flex items-center">
-                      <i className="fas fa-tag mr-2"></i>
+                  <div
+                    className="bg-white rounded-xl overflow-hidden p-6 shadow-[0_20px_50px_rgba(8,_112,_184,_0.1)] hover:shadow-[0_20px_60px_rgba(59,_130,_246,_0.18)] border border-indigo-50 transform-gpu transition-all duration-300"
+                    style={{
+                      transformStyle: "preserve-3d",
+                    }}
+                  >
+                    <div className="absolute top-0 right-0 bg-gradient-to-bl from-indigo-500 to-blue-600 text-white px-4 py-1 rounded-bl-lg text-xs font-medium z-10">
+                      OPEN NOW
+                    </div>
+
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-semibold text-gray-800 flex items-center">
+                        {vendor.name}
+                        <FaHeart className="text-pink-500 ml-2 h-3 w-3" />
+                      </h3>
+                      <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-md">
+                        <FaStar className="text-yellow-500" />
+                        <span className="ml-1 text-gray-700 font-medium">
+                          4.8
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mb-4 inline-block px-3 py-1 bg-indigo-50 rounded-md text-indigo-700 text-sm font-medium">
+                      <FaTag className="inline mr-2" />
                       {vendor.category}
-                    </p>
-                    <div className="flex items-center text-gray-500 text-sm mb-4">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1 text-blue-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
+                    </div>
+
+                    <div className="flex items-center text-gray-500 text-sm mb-6">
+                      <FaMapMarkerAlt className="h-4 w-4 mr-2 text-indigo-500" />
                       {vendor.location}
                     </div>
-                    <Link
-                      to={`/book`}
-                      className="block w-full text-center py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      Book Now
-                    </Link>
+
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="flex items-center text-gray-500">
+                        <FaPhoneAlt className="h-3 w-3 mr-1" />
+                        <span className="text-xs">Quick response</span>
+                      </div>
+                      <Link
+                        to={`/book`}
+                        className="block text-center py-2 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-medium transform hover:-translate-y-0.5 shadow-md hover:shadow-indigo-200"
+                      >
+                        Book Now
+                      </Link>
+                    </div>
+
+                    <div className="absolute -bottom-1 -right-1 w-20 h-20 bg-gradient-to-tl from-indigo-100 to-transparent rounded-full opacity-50"></div>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           ) : (
             <p className="text-center text-lg text-gray-600">
-              No featured vendors available at the moment.
+              Our top providers are taking a quick break. Check back in a few
+              moments!
             </p>
           )}
 
@@ -225,129 +241,220 @@ const Home = () => {
             <Button
               to="/book"
               variant="outline"
-              className="shadow-md hover:shadow-lg px-6 py-2 rounded-full border-blue-600 text-blue-600 hover:bg-blue-50 font-medium transition-all duration-300"
+              className="shadow-md hover:shadow-lg px-8 py-3 rounded-full border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-medium transition-all duration-300 flex items-center gap-2 mx-auto"
             >
-              View All Providers
+              <span>Explore All Local Spots</span>{" "}
+              <FaSearch className="h-3 w-3" />
             </Button>
           </div>
         </div>
       </section>
-
-      {/* Affordable Plans */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            Simple, Affordable Plan
+      {/* Affordable Plans with More Human Touch */}
+      <section className="py-24 bg-white relative">
+        <div className="absolute top-0 left-0 right-0 h-16 bg-indigo-50 transform -skew-y-2"></div>
+        <div className="container mx-auto px-4 pt-10">
+          <h2
+            className="text-3xl md:text-4xl font-bold text-center mb-4"
+            id="pricing"
+          >
+            Pricing That Makes <span className="text-green-600">Sense</span>
           </h2>
           <div className="w-24 h-1 bg-green-600 mx-auto mb-6"></div>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto text-lg">
-            Everything you need to get started. One flat price, no surprises.
+          <p className="text-center text-gray-700 mb-12 max-w-2xl mx-auto text-lg">
+            No hidden fees, no surprises. Just straightforward pricing that
+            works for small businesses.
           </p>
 
           <div className="max-w-xl mx-auto">
-            <Card className="border-2 border-gray-200 hover:border-green-500 transition-all duration-300 transform hover:scale-[1.02] shadow-sm">
-              <div className="p-8 text-center">
-                <div className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full inline-block mb-4">
-                  BEST FOR STARTERS
+            <Card className="border-2 border-gray-200 hover:border-green-500 transition-all duration-300 transform hover:scale-[1.02] shadow-sm rounded-2xl overflow-hidden">
+              <div className="bg-gradient-to-r from-green-400 to-green-600 py-3">
+                <div className="text-center text-white font-bold">
+                  MOST POPULAR CHOICE
                 </div>
+              </div>
+              <div className="p-8 text-center">
                 <h3 className="text-2xl font-bold mb-2">Starter Plan</h3>
                 <p className="text-gray-600 mb-4">
-                  Perfect for solo professionals & freelancers
+                  Perfect for independent professionals ready to grow
                 </p>
 
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">₹600</span>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold">₹600</span>
                   <span className="text-gray-500">/month</span>
                   <p className="text-sm text-gray-500 mt-1">
-                    or ₹6,000/year (save 17%)
+                    or ₹6,000/year (that's 2 months free!)
                   </p>
                 </div>
 
-                <ul className="mb-6 space-y-3 text-left text-sm">
+                <ul className="mb-8 space-y-4 text-left text-sm">
                   <li className="flex items-center">
                     <CheckIcon />
-                    Up to 300 bookings/month
+                    <span>
+                      <strong>300 monthly bookings</strong> – plenty for most
+                      small businesses
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon />
-                    Basic online scheduling
+                    <span>
+                      <strong>24/7 online scheduling</strong> – let customers
+                      book while you sleep
+                    </span>
                   </li>
                   <li className="flex items-center">
                     <CheckIcon />
-                    Customer notifications
+                    <span>
+                      <strong>Automatic notifications</strong> – reduce no-shows
+                      by up to 70%
+                    </span>
                   </li>
                   <li className="flex items-center text-gray-400 line-through">
                     <CrossIcon />
-                    Staff accounts
+                    Staff accounts for team management
                   </li>
                   <li className="flex items-center text-gray-400 line-through">
                     <CrossIcon />
-                    Priority support
+                    Priority customer support
                   </li>
                 </ul>
 
                 <Button
                   to="/payment/starter"
                   variant="outline"
-                  className="w-full border-green-500 text-green-600 hover:bg-green-50 text-sm py-2"
+                  className="w-full border-green-500 text-green-600 hover:bg-green-50 text-sm py-3 transition-all hover:shadow-lg rounded-xl font-medium"
                 >
-                  Start 7-Day Free Trial
+                  Start Your 7-Day Free Trial
                 </Button>
+                <p className="text-gray-500 text-xs mt-3">
+                  No credit card required for trial
+                </p>
               </div>
             </Card>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Footer with Enhanced Design */}
+      <footer className="bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-900 text-white py-16 relative">
+        <div className="absolute top-0 left-0 right-0 h-16 bg-white transform -skew-y-2"></div>
+        <div className="container mx-auto px-4 pt-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div>
-              <h3 className="text-3xl font-bold mb-4">AppointMate</h3>
-              <p className="text-gray-400 mb-4">
-                Simplifying appointment booking for businesses and customers.
+              <h3 className="text-3xl font-bold mb-4 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-300">
+                AppointMate
+              </h3>
+              <p className="text-gray-400 mb-6 text-lg">
+                We're on a mission to make scheduling simple for everyone.
               </p>
-              <div className="mt-6 bg-gray-800 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">For Business Owners</h4>
-                <p className="text-gray-400 text-sm mb-3">
-                  Want to list your business? Choose a subscription plan first
-                  to access vendor registration.
+              <div className="mt-6 bg-gradient-to-br from-gray-800 to-gray-900 p-5 rounded-xl shadow-lg border border-gray-700">
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <FaStar className="text-yellow-400" /> Own a Business?
+                </h4>
+                <p className="text-gray-400 text-sm mb-4">
+                  Join hundreds of local businesses already growing their
+                  customer base with online bookings.
                 </p>
                 <div className="flex gap-3">
                   <Button
                     to="/vendor/login"
                     variant="outline"
                     size="sm"
-                    className="text-xs border-gray-400 text-gray-300"
+                    className="text-xs border-gray-400 text-gray-300 hover:bg-gray-700"
                   >
-                    Vendor Login
+                    Sign In
                   </Button>
                   <Button
                     to="#pricing"
                     size="sm"
-                    className="text-xs"
+                    className="text-xs bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
                     onClick={() => {
                       document
                         .getElementById("pricing")
                         .scrollIntoView({ behavior: "smooth" });
                     }}
                   >
-                    View Pricing
+                    Get Started
                   </Button>
                 </div>
               </div>
             </div>
             <div>
-              <h4 className="text-xl font-semibold mb-4">Contact</h4>
-              <p className="text-gray-400 mb-2">
-                Email: prasadshaswat9265@gmail.com
+              <h4 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <FaPhoneAlt className="text-indigo-400 h-4 w-4" /> Need Help?
+              </h4>
+              <p className="text-gray-400 mb-4">
+                Our friendly support team is here for you 7 days a week.
               </p>
-              <p className="text-gray-400 mb-2">Phone: +91 9265318481</p>
+              <p className="text-gray-400 mb-2 flex items-center gap-2">
+                <span className="text-indigo-400">Email:</span>{" "}
+                prasadshaswat9265@gmail.com
+              </p>
+              <p className="text-gray-400 mb-6 flex items-center gap-2">
+                <span className="text-indigo-400">Phone:</span> +91 9265318481
+              </p>
+              <div className="bg-gray-800 p-4 rounded-lg">
+                <p className="text-sm text-gray-300">
+                  "AppointMate has saved our salon hundreds of hours on the
+                  phone. Our customers love it too!"
+                  <br />
+                  <span className="text-indigo-300 font-medium">
+                    – Maya's Beauty Studio
+                  </span>
+                </p>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-xl font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <Link
+                    to="/book"
+                    className="hover:text-indigo-300 transition-colors"
+                  >
+                    Find Services
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/check-status"
+                    className="hover:text-indigo-300 transition-colors"
+                  >
+                    Check Booking Status
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/about"
+                    className="hover:text-indigo-300 transition-colors"
+                  >
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/contact"
+                    className="hover:text-indigo-300 transition-colors"
+                  >
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/privacy"
+                    className="hover:text-indigo-300 transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+              </ul>
             </div>
           </div>
-          <div className="border-t border-gray-700 pt-6 text-center text-sm text-gray-500">
-            Built with ❤️ by the AppointMate Team
+          <div className="border-t border-gray-700 mt-10 pt-8 text-center">
+            <p className="text-sm text-gray-500 mb-4">
+              Built with ❤️ by the AppointMate Team in India
+            </p>
+            <p className="text-xs text-gray-600">
+              © 2023 AppointMate. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
