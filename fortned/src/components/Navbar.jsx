@@ -110,7 +110,7 @@ const Navbar = () => {
                   Login
                 </NavLink>
                 <NavLink
-                  to="#pricing"
+                  to="/register"
                   isActive={false}
                   className="bg-white text-blue-700 shadow hover:bg-gray-100"
                   onClick={(e) => {
@@ -168,7 +168,7 @@ const Navbar = () => {
                     Login
                   </MobileNavLink>
                   <MobileNavLink
-                    to="#pricing"
+                    to="/register"
                     onClick={(e) => {
                       e.preventDefault();
                       document
