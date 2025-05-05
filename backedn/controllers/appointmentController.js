@@ -2,6 +2,10 @@ const Appointment = require("../models/Appointment");
 const Booking = require("../models/Booking"); // Added Booking model
 const asyncHandler = require("express-async-handler");
 
+// API base URL
+const API_URL =
+  "https://appointment-booking-system-for-salons-br4o.onrender.com";
+
 // @desc    Create a new appointment
 // @route   POST /api/appointments
 // @access  Private

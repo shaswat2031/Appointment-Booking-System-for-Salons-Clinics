@@ -1,6 +1,10 @@
 const Payment = require("../models/Payment");
 const Vendor = require("../models/Vendor");
 
+// API base URL
+const API_URL =
+  "https://appointment-booking-system-for-salons-br4o.onrender.com";
+
 // Process a payment for a subscription
 const processPayment = async (req, res) => {
   try {

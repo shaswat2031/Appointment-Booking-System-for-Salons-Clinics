@@ -1,4 +1,5 @@
-const { API_BASE_URL } = require("./config");
+const API_BASE_URL =
+  "https://appointment-booking-system-for-salons-br4o.onrender.com";
 
 // Generic function for API calls
 async function callApi(endpoint, method = "GET", data = null) {
